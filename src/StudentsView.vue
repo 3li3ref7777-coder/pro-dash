@@ -122,7 +122,8 @@ export default {
   components: { AddStudent },
   data() {
     return {
-      studentsData: [...initialStudents],
+      // القراءة من localStorage أولاً، وإذا لم توجد بيانات يُستورد الملف الافتراضي
+      studentsData: JSON.parse(localStorage.getItem('studentsData')) || [...initialStudents],
       searchQuery: '',
       selectedStudent: { id: null, name: '', city: '' }
     }
@@ -136,15 +137,20 @@ export default {
     }
   },
   methods: {
+    saveToLocalStorage() {
+      localStorage.setItem('studentsData', JSON.stringify(this.studentsData))
+    },
     addNewStudent(newStudent) {
       const lastId = this.studentsData.length > 0 
         ? Math.max(...this.studentsData.map(s => s.id)) 
         : 0
       this.studentsData.push({ id: lastId + 1, ...newStudent })
+      this.saveToLocalStorage()
     },
     deleteStudent(id) {
       if (confirm('Are you sure you want to delete this student?')) {
         this.studentsData = this.studentsData.filter(s => s.id !== id)
+        this.saveToLocalStorage()
       }
     },
     openEditModal(student) {
@@ -159,6 +165,7 @@ export default {
       const index = this.studentsData.findIndex(s => s.id === this.selectedStudent.id)
       if (index !== -1) {
         this.studentsData.splice(index, 1, { ...this.selectedStudent })
+        this.saveToLocalStorage()
       }
       const modalEl = document.getElementById('editStudentModal')
       if (window.bootstrap) {
